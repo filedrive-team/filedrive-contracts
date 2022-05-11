@@ -1,5 +1,7 @@
 [workspace]
 
 members = [
-    "contracts/fvm-utils"
+    "contracts/fvm-utils",
+    "contracts/frc20"
+
 ]
