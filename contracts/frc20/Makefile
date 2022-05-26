@@ -1,12 +1,12 @@
 .PHONY: build
-cid = "bafk2bzacedkaikxtjp5szud3fmefowmwa2wmw52pwkzz6hesnirjmbxumrzs4"
-actor_address = 't01042'
+cid = "bafk2bzacea3qligdipzpcsg6w65zch4upci3ay2exqwpsebb4gx6uiyicjyuc"
+actor_address = 't01048'
 invoke = lotus chain invoke
 
 build:
 	cargo build
 install-actor: build
-	lotus chain install-actor target/debug/wbuild/frc20/frc20.compact.wasm
+	lotus chain install-actor ../../target/debug/wbuild/frc20/frc20.compact.wasm
 
 create_actor:
 	lotus chain create-actor $(cid)

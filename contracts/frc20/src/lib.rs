@@ -5,13 +5,16 @@ mod types;
 use crate::frc20::FRC20;
 use crate::strandard_token::StandardToken;
 use crate::types::{Approve, Transfer};
+use fvm_ipld_encoding::Cbor;
 use fvm_ipld_encoding::{RawBytes, DAG_CBOR};
 use fvm_sdk as sdk;
-use fvm_sdk::message::NO_DATA_BLOCK_ID;
+use fvm_sdk::message::{params_raw, NO_DATA_BLOCK_ID};
 use fvm_shared::bigint::BigUint;
 use fvm_shared::ActorID;
 use fvm_utils::storage::Storage;
 use fvm_utils::u256::U256;
+use serde::{Deserialize, Serialize};
+use serde_json::from_str;
 use std::collections::HashMap;
 
 const TO_ACTOR_ID: ActorID = 200;
@@ -25,8 +28,17 @@ macro_rules! abort {
     };
 }
 
+#[derive(Deserialize, Serialize, Clone, Debug)]
+struct Params {
+    method: String,
+    name: String,
+    age: u32,
+}
+
+impl Cbor for Params {}
+
 #[no_mangle]
-pub fn invoke(_: u32) -> u32 {
+pub fn invoke(_params_id: u32) -> u32 {
     let ret: Option<RawBytes> = match sdk::message::method_number() {
         1 => geneses(),
         2 => balance_of(),
@@ -36,6 +48,17 @@ pub fn invoke(_: u32) -> u32 {
         10 => Some(RawBytes::new(
             fvm_sdk::message::caller().to_string().as_bytes().to_vec(),
         )),
+        11 => {
+            let (codec, raw) = match params_raw(_params_id) {
+                Ok(v) => v,
+                Err(e) => abort!(USR_UNHANDLED_MESSAGE, "failed to parse params1: {:?}", e),
+            };
+            debug_assert!(codec == DAG_CBOR, "parameters codec was not cbor");
+            match fvm_ipld_encoding::from_slice(raw.as_slice()) {
+                Ok(v) => v,
+                Err(e) => abort!(USR_UNHANDLED_MESSAGE, "failed to parse params3: {:?}", e),
+            }
+        }
         _ => abort!(USR_UNHANDLED_MESSAGE, "unrecognized method"),
     };
 
